@@ -63,20 +63,19 @@ local function is_listener_callable(callable)
 	return false
 end
 
-local function new_listener(id,callable, index)
+local function new_listener(property)
 	assert(type(id) ~= nil, "id is nil")
-	assert(is_listener_callable(callable), "listener not function or thread")
 	return setmetatable({
-		callable        = callable,
-		id              = id,
-		name            = tostring(callable),
+		callable        = property.listener,
+		id              = property.id,
+		name            = tostring(property.listener),
 		enabled         = true,
 		dead            = false,
-		priority        = 0,
-		limit           = -1,
-		index           = index,
+		priority        = property.priority or 0,
+		limit           = property.limit or -1,
+		index           = property.index,
 		number_of_calls = 0,
-		interval        = 0,
+		interval        =  property.interval or 0,
 		last_call_time  = os.time(),
 	}, E.listener)
 end
@@ -136,14 +135,22 @@ local function unlock(event)
 end
 
 function E:add_listener(id, listener)
-	assert(id)
-	assert(is_listener_callable(listener) == true)
-
-	-- if self:exists(listener) then return end
-	
-	local new = new_listener(id, listener, new_index(self))
-	table.insert(self.listeners, new)
-	return listener,new.id, new.name
+	local property
+	if type(id) == "table" then
+		property       = id
+		property.index = new_index(self)
+	else
+		property = {
+			id       = id,
+			listener = listener,
+			index    = new_index(self)
+		}
+	end
+	assert(property.id, "id is nil")
+	assert(is_listener_callable(property.listener), "listener not function or not coroutine")
+	local new = new_listener(property)
+	self.listeners[#self.listeners+1] = new
+	return listener, new.id, new.name
 end
 
 function E:remove_listener(listener)

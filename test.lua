@@ -11,9 +11,23 @@ dispatcher1:add_listener("TEST_DISPATH_CO", coroutine.create(function(args)
 	end
 end))
 
+dispatcher1:add_listener({
+	id = "TEST_DISPATH_TABLE",
+	listener = function (args)
+		print("listener is table, args =", args)
+	end,
+	priority = 10,
+	limit    = 2,
+	interval = 0
+})
+
 dispatcher1:dispatch("TEST_DISPATCH_FUNC", "dispatcher1")
 for i=1, 3 do
 	dispatcher1:dispatch("TEST_DISPATH_CO", "dispatcher1")
+end
+
+for i=1, 3 do
+	dispatcher1:dispatch("TEST_DISPATH_TABLE", "dispatcher1")
 end
 
 print("--------------------------------")
