@@ -1,4 +1,4 @@
-local E = require "levent"
+local E = require "luevt"
 local dispatcher1 = E.new()
 dispatcher1:add_listener("TEST_DISPATCH_FUNC", function(args)
 	print("listener is fucntion, args =", args)
