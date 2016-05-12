@@ -48,23 +48,21 @@ E.listener = {}
 E.listener.__index = E.listener
 
 local function is_listener_callable(callable)
-	if type(callable) == "table" then
+	local _type = type(callable)
+	if _type == "table" then
 		if type(getmetatable(callable)["__call"]) == "function" then
 			return true
 		end
-	elseif type(callable) == "function" then
+	elseif _type == "function" then
 		return true
-	elseif type(callable) == "thread" then
-		if coroutine.status(callable) ~= "dead" then
-			return true
-		end
+	elseif _type == "thread" then
+		return coroutine.status(callable) ~= "dead"
 	end
 
 	return false
 end
 
 local function new_listener(property)
-	assert(type(id) ~= nil, "id is nil")
 	return setmetatable({
 		callable        = property.listener,
 		id              = property.id,
@@ -75,7 +73,7 @@ local function new_listener(property)
 		limit           = property.limit or -1,
 		index           = property.index,
 		number_of_calls = 0,
-		interval        =  property.interval or 0,
+		interval        = property.interval or 0,
 		last_call_time  = os.time(),
 	}, E.listener)
 end
@@ -208,27 +206,27 @@ local function invoke(listener, ...)
 	return true
 end
 
+local function call(self, listener, ...)
+	local keep = invoke(listener, ...)
+	if keep == false then
+		self:remove_listener(listener.id)
+	end
+end
+
 function E:dispatch(id, ...)
 	assert(id, "event id is nil")
-	local call = function (listener, ...)
-		local keep = invoke(listener, ...)
-		if keep == false then
-			self:remove_listener(listener.id)
-		end
-	end
-
 	sort_by_priority(self)
 	lock(self)
 	for _,listener in ipairs(self.listeners) do
 		if listener.id == id and not listener.dead then
 			if listener.interval > 0 then
 				if os.difftime(os.time(), listener.last_call_time) >= listener.interval then
-						call(listener, ...)
+						call(self, listener, ...)
 						listener.last_call_time = os.time()
 				end
 			else
 				-- call(listener, listener.id, ...)
-				call(listener, ...)
+				call(self, listener, ...)
 			end
 		end
 	end
@@ -304,9 +302,9 @@ end
 function E:remove_dispatch_limit(listener)
 	local exists,index = find(self, listener)
 	assert(exists)
-	self.listeners[index].limit = -1
+	self.listeners[index].limit           = -1
 	self.listeners[index].number_of_calls = 0
-	self.listeners[index].enabled = true
+	self.listeners[index].enabled         = true
 end
 
 function E:all_listeners()
@@ -319,8 +317,11 @@ function E:all_listeners()
 end
 
 function E:foreach_listener(f)
+	local _type = type(f)
 	for listener in self:all_listeners() do
-		f(self, listener)
+		if "function" == _type then
+			f(self, listener)
+		end
 	end
 end
 
