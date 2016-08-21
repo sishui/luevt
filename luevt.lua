@@ -11,15 +11,17 @@ local tostring     = tostring
 local error        = error
 local pairs        = pairs
 
-local E = {}
+local E = {
+	__call =  function( self, id, ...) self:dispatch(id, ...) end,
+}
 E.__index = E
 
 function E.new()
 	return setmetatable({ 
-			listeners     = {},
-			index = 0,
-			locked        = false,
-			dying         = {}
+			listeners = {},
+			index     = 0,
+			locked    = false,
+			disabled  = {}
 			}, E)
 end
 
@@ -156,8 +158,8 @@ function E:remove_listener(listener)
 		local exists,index = find(self, listener)
 		if exists then
 			if self.locked then
-				self.listeners[index]["dead"] = true
-				self.dying[#self.dying+1] = listener
+				self.listeners[index]["dead"]   = true
+				self.disabled[#self.disabled+1] = listener
 				--break
 			else
 				table.remove(self.listeners, index)
@@ -231,9 +233,9 @@ function E:dispatch(id, ...)
 		end
 	end
 	unlock(self)
-	local dying
-	dying, self.dying = self.dying,{}
-	for _,v in pairs(dying or {}) do
+	local disabled
+	disabled, self.disabled = self.disabled,{}
+	for _,v in pairs(disabled or {}) do
 		self:remove_listener(v)
 	end
 end

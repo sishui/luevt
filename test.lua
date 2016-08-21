@@ -20,8 +20,8 @@ dispatcher1:add_listener({
 	limit    = 2,
 	interval = 0
 })
-
-dispatcher1:dispatch("TEST_DISPATCH_FUNC", "dispatcher1")
+dispatcher1("TEST_DISPATCH_FUNC", "dispatcher1-CALL")
+dispatcher1:dispatch("TEST_DISPATCH_FUNC", "dispatcher1-DISPATCH")
 for i=1, 3 do
 	dispatcher1:dispatch("TEST_DISPATH_CO", "dispatcher1")
 end
