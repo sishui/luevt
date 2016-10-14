@@ -18,11 +18,11 @@ E.__index = E
 
 function E.new()
 	return setmetatable({ 
-			listeners = {},
-			index     = 0,
-			locked    = false,
-			disabled  = {}
-			}, E)
+		listeners = {},
+		index     = 0,
+		locked    = false,
+		disabled  = {}
+		}, E)
 end
 
 E.__eq = function (e1, e2)
